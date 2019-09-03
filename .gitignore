@@ -1,0 +1,19 @@
+**/target/
+/target/
+*/target/*
+**/out/
+/out/
+*/out/*
+.classpath
+.project
+.settings
+
+# Package Files #
+# *.jar
+*.war
+*.ear
+
+*.iml
+*.idea
+
+algs4-data.zip
