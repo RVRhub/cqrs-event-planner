@@ -5,9 +5,9 @@ This is project base on CQRS architecture.
 ### Commands 
 Create Event Command:
 
-**URL** : `/events?memberEmail={email}}`
+&nbsp; **URL** : `/events?memberEmail={email}}`
 
-**Method** : `POST`
+&nbsp; **Method** : `POST`
 
 Member Offer Command:
 
