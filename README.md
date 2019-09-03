@@ -5,25 +5,25 @@ This is project base on CQRS architecture.
 ### Commands 
 Create Event Command:
 
-&nbsp; **URL** : `/events?memberEmail={email}}`
+&nbsp;&nbsp; **URL** : `/events?memberEmail={email}}`
 
-&nbsp; **Method** : `POST`
+&nbsp;&nbsp; **Method** : `POST`
 
 Member Offer Command:
 
-**URL** : `/events/{event_id}?memberEmail={email}&place=CafeOne`
+&nbsp;&nbsp; **URL** : `/events/{event_id}?memberEmail={email}&place=CafeOne`
 
-**Method** : `POST`
+&nbsp;&nbsp; **Method** : `POST`
 
 Force Make Decision Command:
 
-**URL** : `/events/{event_id}`
+&nbsp;&nbsp; **URL** : `/events/{event_id}`
 
-**Method** : `PATCH`
+&nbsp;&nbsp; **Method** : `PATCH`
 
 ### Query
 Get Current State Query:
 
-**URL** : `/events/{event_id}`
+&nbsp;&nbsp; **URL** : `/events/{event_id}`
 
-**Method** : `GET`
+&nbsp;&nbsp; **Method** : `GET`
