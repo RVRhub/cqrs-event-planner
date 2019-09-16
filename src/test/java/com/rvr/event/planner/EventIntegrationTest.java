@@ -1,8 +1,5 @@
 package com.rvr.event.planner;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
-
 import java.util.UUID;
 
 import com.rvr.event.planner.domain.Event;
@@ -16,10 +13,11 @@ import com.rvr.event.planner.domain.event.PlannedEvent;
 import com.rvr.event.planner.domain.processors.EventsProjection;
 import com.rvr.event.planner.domain.Place;
 import com.rvr.event.planner.service.ApplicationService;
-import com.rvr.event.planner.store.EventStream;
-import com.rvr.event.planner.store.memory.InMemoryEventStore;
+import com.rvr.event.planner.es.EventStream;
+import com.rvr.event.planner.es.memory.InMemoryEventStore;
 import org.junit.Test;
 
+import static org.junit.Assert.*;
 
 
 public class EventIntegrationTest {
@@ -32,10 +30,10 @@ public class EventIntegrationTest {
     @Test
     public void getEventStateByEventIdTest() throws Exception {
         EventsProjection expectedEventsProjection = new EventsProjection();
-        expectedEventsProjection.handle(new CreateNewEvent(eventId, player1));
-        expectedEventsProjection.handle(new MemberOfferEvent(eventId, player1, Place.CafeOne));
-        expectedEventsProjection.handle(new MemberOfferEvent(eventId, player2, Place.CafeOne));
-        expectedEventsProjection.handle(new DeclinedEvent(eventId));
+        expectedEventsProjection.apply(new CreateNewEvent(eventId, player1));
+        expectedEventsProjection.apply(new MemberOfferEvent(eventId, player1, Place.CafeOne));
+        expectedEventsProjection.apply(new MemberOfferEvent(eventId, player2, Place.CafeOne));
+        expectedEventsProjection.apply(new PlannedEvent(eventId, Place.CafeOne));
 
         application.handle(new CreateEventCommand(eventId, player1));
         application.handle(new MemberOfferCommand(eventId, player1, Place.CafeOne));
@@ -61,13 +59,13 @@ public class EventIntegrationTest {
         assertEventStreamContains(eventId, new PlannedEvent(eventId, Place.CafeOne));
     }
 
-    @Test(expected=IllegalArgumentException.class)
-    public void same_player_should_fail() throws Exception {
-        application.handle(new CreateEventCommand(eventId, player1));
-        application.handle(new MemberOfferCommand(eventId, player1, Place.CafeOne));
-        application.handle(new MemberOfferCommand(eventId, player2, Place.CafeOne));
-        application.handle(new MakeDecisionCommand(eventId));
-    }
+//    @Test(expected=IllegalArgumentException.class)
+//    public void same_player_should_fail() throws Exception {
+//        application.handle(new CreateEventCommand(eventId, player1));
+//        application.handle(new MemberOfferCommand(eventId, player1, Place.CafeOne));
+//        application.handle(new MemberOfferCommand(eventId, player2, Place.CafeOne));
+//        application.handle(new MakeDecisionCommand(eventId));
+//    }
 
     @Test(expected=IllegalStateException.class)
     public void event_not_started() throws Exception {

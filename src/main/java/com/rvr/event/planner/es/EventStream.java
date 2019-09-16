@@ -1,4 +1,4 @@
-package com.rvr.event.planner.store;
+package com.rvr.event.planner.es;
 
 import com.rvr.event.planner.domain.Event;
 

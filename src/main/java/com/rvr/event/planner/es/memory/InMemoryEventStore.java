@@ -1,9 +1,9 @@
-package com.rvr.event.planner.store.memory;
+package com.rvr.event.planner.es.memory;
 
 import com.rvr.event.planner.domain.Event;
-import com.rvr.event.planner.store.EventStore;
-import com.rvr.event.planner.store.EventStream;
-import com.rvr.event.planner.store.ListEventStream;
+import com.rvr.event.planner.es.EventStore;
+import com.rvr.event.planner.es.EventStream;
+import com.rvr.event.planner.es.ListEventStream;
 import rx.Observable;
 
 import java.util.*;

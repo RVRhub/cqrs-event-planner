@@ -7,7 +7,6 @@ import lombok.Getter;
 import java.util.UUID;
 
 public class MemberOfferEvent implements Event {
-
     private final UUID eventId;
 
     @Getter

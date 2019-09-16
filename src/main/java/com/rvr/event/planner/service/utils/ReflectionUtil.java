@@ -3,6 +3,7 @@ package com.rvr.event.planner.service.utils;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
+@Deprecated
 public class ReflectionUtil {
     public static final String HANDLE_METHOD = "handle";
     public static final String APPLY_METHOD = "apply";

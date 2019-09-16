@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+package com.rvr.event.planner.es.protobuf;
+
+//message EventsStore {
+//  string aggregateId = 1;
+//  repeated EventRecord event_records= 2;
+//}
+
+message EventRecord {
+  string aggregateId = 1;
+  string eventType = 2;
+  map<string, string> additionalParameters = 3;
+}
+
+enum EventType {
+  CREATE = 0;
+  MEMBER_OFFER = 1;
+  PLANNED = 2;
+  DECLINED = 3;
+}

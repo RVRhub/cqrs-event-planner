@@ -1,12 +1,14 @@
 package com.rvr.event.planner.domain.event;
 
 import com.rvr.event.planner.domain.Event;
+import lombok.Getter;
 
 import java.util.UUID;
 
 public class CreateNewEvent implements Event {
-    public final UUID eventId;
-    public final String member;
+    private final UUID eventId;
+    @Getter
+    private final String member;
 
     CreateNewEvent() {
         eventId = null;

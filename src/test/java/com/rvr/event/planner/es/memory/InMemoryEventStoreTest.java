@@ -1,4 +1,4 @@
-package com.rvr.event.planner.memory;
+package com.rvr.event.planner.es.memory;
 
 
 import static org.junit.Assert.assertEquals;
@@ -8,8 +8,8 @@ import java.util.UUID;
 
 import com.rvr.event.planner.domain.Event;
 import com.rvr.event.planner.domain.event.DeclinedEvent;
-import com.rvr.event.planner.store.EventStream;
-import com.rvr.event.planner.store.memory.InMemoryEventStore;
+import com.rvr.event.planner.es.EventStream;
+import com.rvr.event.planner.es.memory.InMemoryEventStore;
 import org.junit.Test;
 
 

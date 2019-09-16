@@ -6,9 +6,9 @@ import com.rvr.event.planner.domain.processors.EventAggregator;
 import com.rvr.event.planner.domain.processors.EventsProjection;
 import com.rvr.event.planner.service.utils.CommandHandlerLookup;
 import com.rvr.event.planner.service.utils.ReflectionUtil;
-import com.rvr.event.planner.store.EventStore;
-import com.rvr.event.planner.store.EventStream;
-import com.rvr.event.planner.store.memory.InMemoryEventStore;
+import com.rvr.event.planner.es.EventStore;
+import com.rvr.event.planner.es.EventStream;
+import com.rvr.event.planner.es.memory.InMemoryEventStore;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -29,11 +29,11 @@ public class ApplicationService {
 
     public void handle(Command command) throws Exception {
         EventStream<Long> eventStream = eventStore.loadEventStream(command.aggregateId());
-        EventAggregator eventAggregator = (EventAggregator) newAggregateInstance(command);
+        EventAggregator eventAggregator = new EventAggregator();
         for (Event event : eventStream) {
-            ReflectionUtil.invokeApplyMethod(eventAggregator, event);
+            eventAggregator = eventAggregator.getEventHandler().apply(event);
         }
-        List<Event> events = ReflectionUtil.invokeHandleMethod(eventAggregator, command);
+        List<Event> events = eventAggregator.getCommandHandler().apply(command);
         if (events != null && events.size() > 0) {
             eventStore.store(command.aggregateId(), eventStream.version(), events);
         } else {
@@ -52,6 +52,7 @@ public class ApplicationService {
         return eventsProjection.get(eventId);
     }
 
+    @Deprecated
     private Object newAggregateInstance(Command command) throws InstantiationException, IllegalAccessException {
         return commandHandlerLookup.targetType(command).newInstance();
     }

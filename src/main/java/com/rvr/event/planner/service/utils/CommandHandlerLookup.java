@@ -6,16 +6,19 @@ import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 
+@Deprecated
 public class CommandHandlerLookup {
     private Map<Class<? extends Command>, Class<?>> commandHandlers = new HashMap<Class<? extends Command>, Class<?>>();
 
     @SuppressWarnings("unchecked")
+    @Deprecated
     public CommandHandlerLookup(String methodName, Class<?>... aggregateTypes) {
         for (Class<?> type : aggregateTypes) {
             loadMethods(methodName, type);
         }
     }
 
+    @Deprecated
     public Class<?> targetType(Command command) {
         return commandHandlers.get(command.getClass());
     }

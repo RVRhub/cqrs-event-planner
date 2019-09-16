@@ -2,12 +2,14 @@ package com.rvr.event.planner.domain.event;
 
 import com.rvr.event.planner.domain.Event;
 import com.rvr.event.planner.domain.Place;
+import lombok.Getter;
 
 import java.util.UUID;
 
 public class PlannedEvent implements Event {
-    public final UUID eventId;
-    public final Place place;
+    private final UUID eventId;
+    @Getter
+    private final Place place;
 
     public PlannedEvent(UUID eventId, Place place) {
         this.eventId = eventId;

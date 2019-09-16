@@ -1,4 +1,4 @@
-package com.rvr.event.planner.store;
+package com.rvr.event.planner.es;
 
 import java.util.List;
 import java.util.UUID;

@@ -8,6 +8,8 @@ import org.springframework.stereotype.Service;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -43,8 +45,9 @@ public class EventsProjection {
 
     public void apply(CreateNewEvent e) {
         EventState event = new EventState();
-        Instant instant = Clock.system(ZoneId.of("Europe/Kiev")).instant();
-        event.setCreatedBy(instant.toString());
+        DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+                .withZone(ZoneId.systemDefault());
+        event.setCreatedBy(DATE_TIME_FORMATTER.format(new Date().toInstant()));
         event.setEventId(e.aggregateId());
         event.setState(State.inProgress);
         event.setOffers(new HashMap<>());
@@ -60,7 +63,7 @@ public class EventsProjection {
     public void apply(PlannedEvent e) {
         EventState event = events.get(e.aggregateId());
         event.state = State.planned;
-        event.place = e.place;
+        event.place = e.getPlace();
     }
 
     public void apply(DeclinedEvent e) {
