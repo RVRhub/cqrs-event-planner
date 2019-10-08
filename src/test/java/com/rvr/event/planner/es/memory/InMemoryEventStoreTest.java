@@ -8,8 +8,8 @@ import java.util.UUID;
 
 import com.rvr.event.planner.domain.Event;
 import com.rvr.event.planner.domain.event.DeclinedEvent;
+import com.rvr.event.planner.domain.processors.EventStateRoot;
 import com.rvr.event.planner.es.EventStream;
-import com.rvr.event.planner.es.memory.InMemoryEventStore;
 import org.junit.Test;
 
 
@@ -19,9 +19,11 @@ public class InMemoryEventStoreTest {
     @Test
     public void test() throws Exception {
         InMemoryEventStore es = new InMemoryEventStore();
-        es.store(eventId, 0, Arrays.asList(new DeclinedEvent(eventId)));
+        EventStateRoot eventStateAggregate = new EventStateRoot(eventId);
+        es.appendEvents(eventStateAggregate, Arrays.asList(new DeclinedEvent(eventId, 0)));
         Thread.sleep(1);
-        es.store(eventId, 1, Arrays.asList(new DeclinedEvent(eventId)));
+        eventStateAggregate.setVersion(1);
+        es.appendEvents(eventStateAggregate, Arrays.asList(new DeclinedEvent(eventId, 1)));
         EventStream<Long> stream = es.loadEventsAfter(0L);
         assertEquals(1, countEvents(stream));
         Long id = stream.version();
@@ -31,8 +33,10 @@ public class InMemoryEventStoreTest {
     @Test
     public void testWithFullListOfEvents() throws Exception {
         InMemoryEventStore es = new InMemoryEventStore();
-        es.store(eventId, 0, Arrays.asList(new DeclinedEvent(eventId)));
-        es.store(eventId, 1, Arrays.asList(new DeclinedEvent(eventId)));
+        EventStateRoot eventStateAggregate = new EventStateRoot(eventId);
+        es.appendEvents(eventStateAggregate, Arrays.asList(new DeclinedEvent(eventId, 0)));
+        eventStateAggregate.setVersion(1);
+        es.appendEvents(eventStateAggregate, Arrays.asList(new DeclinedEvent(eventId, 1)));
         EventStream<Long> stream = es.loadEventsAfter();
         assertEquals(2, countEvents(stream));
         Long id = stream.version();

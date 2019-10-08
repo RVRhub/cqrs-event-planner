@@ -9,15 +9,13 @@ public class CreateNewEvent implements Event {
     private final UUID eventId;
     @Getter
     private final String member;
+    @Getter
+    public final long sequenceNumber;
 
-    CreateNewEvent() {
-        eventId = null;
-        member = null;
-    }
-
-    public CreateNewEvent(UUID eventId, String member) {
+    public CreateNewEvent(UUID eventId, String member, long sequenceNumber) {
         this.eventId = eventId;
         this.member = member;
+        this.sequenceNumber = sequenceNumber;
     }
 
     @Override

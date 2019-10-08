@@ -3,35 +3,42 @@ package com.rvr.event.planner.domain.processors;
 import com.google.common.collect.Lists;
 import com.rvr.event.planner.domain.Command;
 import com.rvr.event.planner.domain.Event;
+import com.rvr.event.planner.domain.Place;
 import com.rvr.event.planner.domain.command.CreateEventCommand;
 import com.rvr.event.planner.domain.command.MakeDecisionCommand;
 import com.rvr.event.planner.domain.command.MemberOfferCommand;
-import com.rvr.event.planner.domain.event.*;
-import com.rvr.event.planner.domain.Place;
+import com.rvr.event.planner.domain.event.CreateNewEvent;
+import com.rvr.event.planner.domain.event.DeclinedEvent;
+import com.rvr.event.planner.domain.event.MemberOfferEvent;
+import com.rvr.event.planner.domain.event.PlannedEvent;
 import lombok.Getter;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.UUID;
 import java.util.function.Function;
 
 public class EventAggregator {
 
-    enum State {
+    public enum State {
         notInitalized, created, planning, planned, declined
     }
 
     private final static int PARTICIPANT_LIMIT = 2;
-    private State state = State.notInitalized;
-    private String member;
-    private int counterOfMember;
-    private Place place;
+    private EventStateRoot eventStateAggregate;
+    private long sequenceNumber;
+
     @Getter
     private EventHandler eventHandler;
     @Getter
     private CommandHandler commandHandler;
 
-    public EventAggregator() {
+    public EventAggregator(UUID aggregateId, long sequenceNumber) {
+        this.eventStateAggregate = new EventStateRoot(aggregateId);
         this.commandHandler = new CommandHandler();
         this.eventHandler = new EventHandler();
+        this.sequenceNumber = sequenceNumber;
     }
 
     public class CommandHandler implements Function<Command, List<Event>> {
@@ -49,33 +56,34 @@ public class EventAggregator {
         }
 
         public List<Event> handle(CreateEventCommand c) {
-            if (state != State.notInitalized) {
-                throw new IllegalStateException(state.toString());
+            if (eventStateAggregate.getState() != State.notInitalized) {
+                throw new IllegalStateException(eventStateAggregate.getState().toString());
             }
 
-            EventAggregator.this.counterOfMember = 0;
-            return Arrays.asList(new CreateNewEvent(c.aggregateId(), c.getMember()));
+            EventAggregator.this.eventStateAggregate.setCounterOfMember(0);
+            return Arrays.asList(new CreateNewEvent(c.aggregateId(), c.getMember(), sequenceNumber++));
         }
 
         public List<Event> handle(MemberOfferCommand c) {
-            if (State.created == state) {
-                counterOfMember++;
-                return Arrays.asList(new MemberOfferEvent(c.aggregateId(), c.getMember(), c.getPlace()));
-            } else if (State.planning == state) {
-                if (member.equals(c.getMember())) {
+            if (State.created == eventStateAggregate.getState()) {
+                eventStateAggregate.incCounterOfMember();
+                return Arrays
+                        .asList(new MemberOfferEvent(c.aggregateId(), c.getMember(), c.getPlace(), sequenceNumber++));
+            } else if (State.planning == eventStateAggregate.getState()) {
+                if (eventStateAggregate.getMember().equals(c.getMember())) {
                     throw new IllegalArgumentException("Member already vote");
                 }
-                counterOfMember++;
+                eventStateAggregate.incCounterOfMember();
                 setPlaceWithMaxPriority(c.getPlace());
 
                 var events = new ArrayList<Event>();
-                events.add(new MemberOfferEvent(c.aggregateId(), c.getMember(), c.getPlace()));
-                if (counterOfMember >= PARTICIPANT_LIMIT) {
+                events.add(new MemberOfferEvent(c.aggregateId(), c.getMember(), c.getPlace(), sequenceNumber++));
+                if (eventStateAggregate.getCounterOfMember() >= PARTICIPANT_LIMIT) {
                     events.addAll(getDecisionEvents(c.aggregateId()));
                 }
                 return events;
             } else {
-                throw new IllegalStateException(state.toString());
+                throw new IllegalStateException(eventStateAggregate.getState().toString());
             }
         }
 
@@ -84,45 +92,47 @@ public class EventAggregator {
         }
 
         private List<Event> getDecisionEvents(UUID aggregateId) {
-            if (State.planning == state && EventAggregator.this.counterOfMember > 1) {
-                if (EventAggregator.this.place.getPriority() > Place.Empty.getPriority()) {
-                    return Arrays.asList(new PlannedEvent(aggregateId, EventAggregator.this.place));
+            if (State.planning == eventStateAggregate.getState()
+                    && EventAggregator.this.eventStateAggregate.getCounterOfMember() > 1) {
+                if (eventStateAggregate.getPlace().getPriority() > Place.Empty.getPriority()) {
+                    var plannedEvent = new PlannedEvent(aggregateId, eventStateAggregate.getPlace(), sequenceNumber++);
+                    return Arrays.asList(plannedEvent);
                 }
             }
 
-            return Arrays.asList(new DeclinedEvent(aggregateId));
+            return Arrays.asList(new DeclinedEvent(aggregateId, sequenceNumber++));
         }
     }
 
     public class EventHandler implements Function<Event, EventAggregator> {
 
         public EventAggregator apply(CreateNewEvent e) {
-            state = State.created;
-            EventAggregator.this.place = Place.Empty;
-            counterOfMember = 0;
+            eventStateAggregate.setState(State.created);
+            EventAggregator.this.eventStateAggregate.setPlace(Place.Empty);
+            eventStateAggregate.incCounterOfMember();
             return EventAggregator.this;
         }
 
         public EventAggregator apply(MemberOfferEvent e) {
-            if (state == State.created) {
-                state = State.planning;
+            if (eventStateAggregate.getState() == State.created) {
+                eventStateAggregate.setState(State.planning);
                 setPlaceWithMaxPriority(e.getPlace());
-            } else if (state == State.planning) {
+            } else if (eventStateAggregate.getState() == State.planning) {
                 setPlaceWithMaxPriority(e.getPlace());
             }
-            counterOfMember++;
-            EventAggregator.this.member = e.getMember();
+            eventStateAggregate.incCounterOfMember();
+            EventAggregator.this.eventStateAggregate.setMember(e.getMember());
 
             return EventAggregator.this;
         }
 
         public EventAggregator apply(PlannedEvent e) {
-            state = State.planned;
+            eventStateAggregate.setState(State.planned);
             return EventAggregator.this;
         }
 
         public EventAggregator apply(DeclinedEvent e) {
-            state = State.declined;
+            eventStateAggregate.setState(State.declined);
             return EventAggregator.this;
         }
 
@@ -143,8 +153,12 @@ public class EventAggregator {
 
     private void setPlaceWithMaxPriority(Place place) {
         if (place != null
-                && place.getPriority() > EventAggregator.this.place.getPriority()) {
-            EventAggregator.this.place = place;
+                && place.getPriority() > EventAggregator.this.eventStateAggregate.getPlace().getPriority()) {
+            EventAggregator.this.eventStateAggregate.setPlace(place);
         }
+    }
+
+    public EventStateRoot getEventStateAggregate() {
+        return eventStateAggregate;
     }
 }

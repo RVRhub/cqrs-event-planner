@@ -1,12 +1,11 @@
 package com.rvr.event.planner.domain.processors;
 
-import com.rvr.event.planner.domain.event.*;
-import com.rvr.event.planner.domain.Place;
-import lombok.Data;
+import com.rvr.event.planner.domain.event.CreateNewEvent;
+import com.rvr.event.planner.domain.event.DeclinedEvent;
+import com.rvr.event.planner.domain.event.MemberOfferEvent;
+import com.rvr.event.planner.domain.event.PlannedEvent;
 import org.springframework.stereotype.Service;
 
-import java.time.Clock;
-import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
@@ -28,15 +27,6 @@ public class EventsProjection {
         }
     }
 
-    @Data
-    public static class EventState {
-        private UUID eventId;
-        private String createdBy;
-        private Place place;
-        private State state;
-        private Map<String, Place> offers;
-    }
-
     private Map<UUID, EventState> events = new HashMap<>();
 
     public EventState get(UUID eventId) {
@@ -56,18 +46,18 @@ public class EventsProjection {
 
     public void apply(MemberOfferEvent e) {
         EventState event = events.get(e.aggregateId());
-        event.offers.put(e.getMember(), e.getPlace());
+        event.getOffers().put(e.getMember(), e.getPlace());
         events.put(e.aggregateId(), event);
     }
 
     public void apply(PlannedEvent e) {
         EventState event = events.get(e.aggregateId());
-        event.state = State.planned;
-        event.place = e.getPlace();
+        event.setState(State.planned);
+        event.setPlace(e.getPlace());
     }
 
     public void apply(DeclinedEvent e) {
         EventState event = events.get(e.aggregateId());
-        event.state = State.declined;
+        event.setState(State.declined);
     }
 }

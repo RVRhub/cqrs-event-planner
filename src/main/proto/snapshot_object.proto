@@ -1,0 +1,12 @@
+syntax = "proto3";
+
+package com.rvr.event.planner.es.protobuf;
+
+message SnapshotRecord {
+  string aggregateId = 1;
+  int64 version = 2;
+  string state = 3;
+  string member = 4;
+  string place = 5;
+  int32 counterOfMember = 6;
+}

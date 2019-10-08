@@ -1,10 +1,11 @@
 package com.rvr.event.planner.es.memory;
 
 import com.rvr.event.planner.domain.Event;
+import com.rvr.event.planner.domain.processors.EventAggregator;
+import com.rvr.event.planner.domain.processors.EventStateRoot;
 import com.rvr.event.planner.es.EventStore;
 import com.rvr.event.planner.es.EventStream;
 import com.rvr.event.planner.es.ListEventStream;
-import rx.Observable;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -26,8 +27,7 @@ public class InMemoryEventStore implements EventStore<Long> {
         return eventStream;
     }
 
-    @Override
-    public void store(UUID aggregateId, long version, List<Event> events) {
+    private void store(UUID aggregateId, long version, List<Event> events) {
         ListEventStream stream = loadEventStream(aggregateId);
         if (stream.version() != version) {
             throw new ConcurrentModificationException("Stream has already been modified");
@@ -39,6 +39,11 @@ public class InMemoryEventStore implements EventStore<Long> {
         }
     }
 
+    @Override
+    public void appendEvents(EventStateRoot eventStateAggregate, List<Event> events) {
+        store(eventStateAggregate.getAggregateId(), eventStateAggregate.getVersion(), events);
+    }
+
     public EventStream<Long> loadEventsAfter() {
         List<Event> events = new LinkedList<>();
         eventsStore.forEach(events::addAll);
@@ -46,9 +51,7 @@ public class InMemoryEventStore implements EventStore<Long> {
     }
 
     public EventStream<Long> loadEventsAfter(Long timestamp) {
-        // include all events after this timestamp, except the events with the current timestamp
-        // since new events might be added with the current timestamp
-        List<Event> events = new LinkedList<Event>();
+        List<Event> events = new LinkedList<>();
         long now;
         synchronized (transactions) {
             now = System.currentTimeMillis();
@@ -59,10 +62,26 @@ public class InMemoryEventStore implements EventStore<Long> {
         return new ListEventStream(now - 1, events);
     }
 
+    @Override
+    public void updateSnapshot(EventStateRoot eventStateAggregate) {
+        throw new UnsupportedOperationException();
+    }
 
     @Override
-    public Observable<Event> all() {
-        throw new UnsupportedOperationException();
+    public EventAggregator readEventStateRoot(UUID aggregateIdentifier) {
+        var eventStream = loadEventStream(aggregateIdentifier);
+        var eventAggregator
+                = new EventAggregator(aggregateIdentifier, eventStream.version());
+        for (Event event : eventStream) {
+            eventAggregator = eventAggregator.getEventHandler().apply(event);
+        }
+        eventAggregator.getEventStateAggregate().setVersion(eventStream.version());
+        return eventAggregator;
+    }
+
+    @Override
+    public Optional<EventStateRoot> readSnapshot(UUID aggregateId) {
+        return Optional.empty();
     }
 
     class Transaction implements Comparable<Transaction> {

@@ -15,5 +15,5 @@
 
 *.iml
 *.idea
-eventStore.bin
+*.bin
 algs4-data.zip

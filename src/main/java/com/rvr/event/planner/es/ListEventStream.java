@@ -1,6 +1,7 @@
 package com.rvr.event.planner.es;
 
 import com.rvr.event.planner.domain.Event;
+import lombok.Getter;
 
 import java.util.Collections;
 import java.util.Iterator;
@@ -9,6 +10,7 @@ import java.util.List;
 
 public class ListEventStream implements EventStream<Long> {
     private final long version;
+    @Getter
     private final List<Event> events;
 
     public ListEventStream() {
@@ -36,5 +38,4 @@ public class ListEventStream implements EventStream<Long> {
     public Long version() {
         return version;
     }
-
 }
