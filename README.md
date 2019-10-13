@@ -1,6 +1,8 @@
 # CQRS Event Planner
 This is project base on CQRS architecture.
 
+![alt text](https://github.com/RVRhub/cqrs-event-planner/blob/master/Event-driven%20Process%20Chain.png)
+
 ## Example Of Rest API
 ### Commands 
 Create Event Command:
