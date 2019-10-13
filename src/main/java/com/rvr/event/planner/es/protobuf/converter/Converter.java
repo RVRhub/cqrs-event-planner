@@ -41,8 +41,8 @@ public class Converter {
         snapshotRecordBuilder.setCounterOfMember(eventStateRoot.getCounterOfMember());
         snapshotRecordBuilder.setState(eventStateRoot.getState().toString());
 
-        if (!StringUtils.isEmpty(eventStateRoot.getMember()))
-            snapshotRecordBuilder.setMember(eventStateRoot.getMember());
+        if (!eventStateRoot.getMembers().isEmpty())
+            snapshotRecordBuilder.addAllMember(eventStateRoot.getMembers());
         if (!StringUtils.isEmpty(eventStateRoot.getPlace()))
             snapshotRecordBuilder.setPlace(eventStateRoot.getPlace().toString());
 
@@ -57,8 +57,8 @@ public class Converter {
         eventStateRoot.setVersion(snapshotRecord.getVersion());
         eventStateRoot.setCounterOfMember(snapshotRecord.getCounterOfMember());
 
-        if (!StringUtils.isEmpty(snapshotRecord.getMember()))
-            eventStateRoot.setMember(snapshotRecord.getMember());
+        if (snapshotRecord.getMemberCount() > 0)
+            eventStateRoot.setMembers(snapshotRecord.getMemberList());
         if (!StringUtils.isEmpty(snapshotRecord.getPlace()))
             eventStateRoot.setPlace(Place.valueOf(snapshotRecord.getPlace()));
 

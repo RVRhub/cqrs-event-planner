@@ -1,9 +1,7 @@
 package com.rvr.event.planner.domain.processors;
 
-import com.rvr.event.planner.domain.event.CreateNewEvent;
-import com.rvr.event.planner.domain.event.DeclinedEvent;
-import com.rvr.event.planner.domain.event.MemberOfferEvent;
-import com.rvr.event.planner.domain.event.PlannedEvent;
+import com.google.common.collect.Sets;
+import com.rvr.event.planner.domain.event.*;
 import org.springframework.stereotype.Service;
 
 import java.time.ZoneId;
@@ -18,7 +16,8 @@ public class EventsProjection {
     public static enum State {
         inProgress(false),
         planned(true),
-        declined(true);
+        declined(true),
+        organized(true);
 
         public final boolean completed;
 
@@ -35,7 +34,7 @@ public class EventsProjection {
 
     public void apply(CreateNewEvent e) {
         EventState event = new EventState();
-        DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+        DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")
                 .withZone(ZoneId.systemDefault());
         event.setCreatedBy(DATE_TIME_FORMATTER.format(new Date().toInstant()));
         event.setEventId(e.aggregateId());
@@ -47,8 +46,16 @@ public class EventsProjection {
     public void apply(MemberOfferEvent e) {
         EventState event = events.get(e.aggregateId());
         event.getOffers().put(e.getMember(), e.getPlace());
+        event.getMembers().add(e.getMember());
         events.put(e.aggregateId(), event);
     }
+
+    public void apply(AddParticipantsEvent e) {
+        EventState event = events.get(e.aggregateId());
+        event.getMembers().addAll(e.getMembers());
+        events.put(e.aggregateId(), event);
+    }
+
 
     public void apply(PlannedEvent e) {
         EventState event = events.get(e.aggregateId());
@@ -59,5 +66,11 @@ public class EventsProjection {
     public void apply(DeclinedEvent e) {
         EventState event = events.get(e.aggregateId());
         event.setState(State.declined);
+    }
+
+    public void apply(OrganizedEvent e) {
+        EventState event = events.get(e.aggregateId());
+        event.setMembers(Sets.newHashSet(e.getMembers()));
+        event.setState(State.organized);
     }
 }

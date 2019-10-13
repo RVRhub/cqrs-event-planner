@@ -25,8 +25,9 @@ public class QueryCurrentStatusService {
 
     public EventState getEventStateByEventId(UUID eventId, boolean isInMemoryStorage) {
         EventsProjection eventsProjection = new EventsProjection();
-        getEvents(eventId, isInMemoryStorage)
-                .forEach(event -> ReflectionUtil.invokeApplyMethod(eventsProjection, event));
+        List<Event> events = getEvents(eventId, isInMemoryStorage);
+
+        events.forEach(event -> ReflectionUtil.invokeApplyMethod(eventsProjection, event));
         return eventsProjection.get(eventId);
     }
 
@@ -35,7 +36,7 @@ public class QueryCurrentStatusService {
             return ((InMemoryEventStore) eventStore)
                     .loadEventsAfter()
                     .stream()
-                    .filter(event -> event.aggregateId() == eventId)
+                    .filter(event -> event.aggregateId().equals(eventId))
                     .collect(Collectors.toList());
         }
 

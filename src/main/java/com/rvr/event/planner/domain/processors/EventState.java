@@ -3,8 +3,7 @@ package com.rvr.event.planner.domain.processors;
 import com.rvr.event.planner.domain.Place;
 import lombok.Data;
 
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 @Data
 public class EventState {
@@ -13,4 +12,5 @@ public class EventState {
     private Place place;
     private EventsProjection.State state;
     private Map<String, Place> offers;
+    private Set<String> members = new HashSet<>();
 }

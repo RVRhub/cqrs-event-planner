@@ -2,14 +2,13 @@ package com.rvr.event.planner.es.protobuf.converter;
 
 import com.rvr.event.planner.domain.Event;
 import com.rvr.event.planner.domain.Place;
-import com.rvr.event.planner.domain.event.CreateNewEvent;
-import com.rvr.event.planner.domain.event.DeclinedEvent;
-import com.rvr.event.planner.domain.event.MemberOfferEvent;
-import com.rvr.event.planner.domain.event.PlannedEvent;
+import com.rvr.event.planner.domain.event.*;
 import com.rvr.event.planner.es.protobuf.EventObject.EventRecord;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import org.apache.tomcat.util.buf.StringUtils;
 
+import java.util.Arrays;
 import java.util.Map;
 import java.util.UUID;
 
@@ -51,6 +50,22 @@ public enum EventConverterEnum {
                     sequenceNumber);
         }
     },
+    ADD_PARTICIPANTS(AddParticipantsEvent.class) {
+        @Override
+        Map<String, String> execute(final Event event) {
+            AddParticipantsEvent addParticipantsEvent = (AddParticipantsEvent) event;
+            return Map.of("members", StringUtils.join(addParticipantsEvent.getMembers(), ','),
+                    "sequenceNumber", String.valueOf(addParticipantsEvent.getSequenceNumber()));
+        }
+
+        @Override
+        Event convertToDomain(EventRecord eventRecord) {
+            long sequenceNumber = Long.parseLong(eventRecord.getAdditionalParametersOrThrow("sequenceNumber"));
+            return new AddParticipantsEvent(UUID.fromString(eventRecord.getAggregateId()),
+                    Arrays.asList(eventRecord.getAdditionalParametersOrThrow("members").split(",")),
+                    sequenceNumber);
+        }
+    },
     PLANNED(PlannedEvent.class) {
         @Override
         Map<String, String> execute(final Event event) {
@@ -64,6 +79,22 @@ public enum EventConverterEnum {
             long sequenceNumber = Long.parseLong(eventRecord.getAdditionalParametersOrThrow("sequenceNumber"));
             return new PlannedEvent(UUID.fromString(eventRecord.getAggregateId()),
                     Place.valueOf(eventRecord.getAdditionalParametersOrThrow("place")),
+                    sequenceNumber);
+        }
+    },
+    ORGANIZED_EVENT(OrganizedEvent.class) {
+        @Override
+        Map<String, String> execute(final Event event) {
+            OrganizedEvent organizedEvent = (OrganizedEvent) event;
+            return Map.of("members", StringUtils.join(organizedEvent.getMembers(), ','),
+                    "sequenceNumber", String.valueOf(organizedEvent.getSequenceNumber()));
+        }
+
+        @Override
+        Event convertToDomain(EventRecord eventRecord) {
+            long sequenceNumber = Long.parseLong(eventRecord.getAdditionalParametersOrThrow("sequenceNumber"));
+            return new OrganizedEvent(UUID.fromString(eventRecord.getAggregateId()),
+                    Arrays.asList(eventRecord.getAdditionalParametersOrThrow("members").split(",")),
                     sequenceNumber);
         }
     },

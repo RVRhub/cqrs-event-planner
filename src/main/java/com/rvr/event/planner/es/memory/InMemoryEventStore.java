@@ -73,7 +73,7 @@ public class InMemoryEventStore implements EventStore<Long> {
         var eventAggregator
                 = new EventAggregator(aggregateIdentifier, eventStream.version());
         for (Event event : eventStream) {
-            eventAggregator = eventAggregator.getEventHandler().apply(event);
+            eventAggregator.getEventHandler().apply(event);
         }
         eventAggregator.getEventStateAggregate().setVersion(eventStream.version());
         return eventAggregator;

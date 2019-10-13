@@ -3,13 +3,15 @@ package com.rvr.event.planner.domain.processors;
 import com.rvr.event.planner.domain.Place;
 import lombok.Data;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 @Data
 public class EventStateRoot {
     private UUID aggregateId;
     private EventAggregator.State state;
-    private String member;
+    private List<String> members = new ArrayList<>();
     private Place place;
     private long version;
     private int counterOfMember;

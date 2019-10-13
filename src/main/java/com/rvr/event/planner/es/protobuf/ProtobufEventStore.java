@@ -50,7 +50,7 @@ public class ProtobufEventStore implements EventStore<Long> {
     private EventAggregator applyEvents(UUID aggregateIdentifier, List<Event> events, long version) {
         EventAggregator eventAggregator = new EventAggregator(aggregateIdentifier, version);
         for (Event event : events) {
-            eventAggregator = eventAggregator.getEventHandler().apply(event);
+            eventAggregator.getEventHandler().apply(event);
         }
         updateSnapshot(eventAggregator.getEventStateAggregate());
         return eventAggregator;
